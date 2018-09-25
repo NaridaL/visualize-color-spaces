@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"lib": ["dom", "esnext"],
+		"jsx": "react",
+		"allowSyntheticDefaultImports": true,
+		"rootDir": "src",
+		"resolveJsonModule": false
+	},
+	"include": [
+		"src/*.ts",
+		"src/*.tsx",
+		"node_modules/webgl-strict-types/*.d.ts"
+	]
+}
