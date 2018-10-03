@@ -41,27 +41,3 @@ export class Picker<T extends string> extends Component<PickerProps<T>> {
 		)
 	}
 }
-
-// export function PickerOption({
-// 	onClick,
-// 	title,
-// 	children,
-// 	selected,
-// 	name,
-// 	value,
-// }: {
-// 	name: string
-// 	value: string
-// 	onClick: () => void
-// 	title: string
-// 	children?: ReactNode
-// 	selected: boolean
-// }) {
-// 	return (
-// 		<label className={classNames("picker-option", selected && "selected")} onClick={onClick} key={value}>
-// 			<div className="title">{title}</div>
-// 			{children}
-// 			<input type="radio" value={value} name={name} id={name + value} />
-// 		</label>
-// 	)
-// }

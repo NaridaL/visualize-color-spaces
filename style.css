@@ -27,6 +27,7 @@ html, body, #vcs-root {
 	cursor: pointer;
 	padding: 0.2em;
 	flex-grow: 1;
+	min-height:3em;
 }
 .picker-option:nth-child(odd) {
 	background-color: #f0f0f0;
@@ -61,15 +62,21 @@ html, body, #vcs-root {
 	padding: 0px 8px;
 	height: 100%;
 	vertical-align: top;
-	line-height: 39px;
+	height: 40px;
 }
-
-#info > button {
+#buttons {
+	display: flex;
+	padding: 0;
+}
+#buttons > * {
 	height: 98%;
+	flex: 1;
+	text-align: center;
 }
 
 #activeColorPreview {
 	width: 24em;
+	line-height: 39px;
 }
 #activeColorPreview > * {
 	display: inline-block;
@@ -79,4 +86,29 @@ html, body, #vcs-root {
 	text-align: center;
 	width: 12em;
 	font-family: monospace;
+}
+
+@media only screen and (max-width: 600px) {
+    #vcs-root {
+		flex-direction: column;
+	}
+	.picker {
+		width: 100%;
+	}
+	#info {
+		flex-direction: column;
+		height: auto;
+	}
+	#activeColorPreview {
+		width: 100%;
+	}
+	#buttons {
+		width: 100%;
+	}
+	.picker-mobile.closed label {
+		height: 3em;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
 }

@@ -120,6 +120,7 @@ export default {
 			typescript,
 			tsconfig: __dirname + "/tsconfig.json",
 			declaration: false,
+			sourcemap: true,
 		}),
 		process.env.BUILD == "production" &&
 			terser({

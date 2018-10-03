@@ -42,6 +42,7 @@ interface SpacesCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
 	rotation: boolean
 	onHoverChange: (value: Color | undefined) => void
 	colorHighlight: Color | undefined
+	pointerColorMaxDistance?: number
 
 	camera: Camera
 }
@@ -71,12 +72,20 @@ export class SpacesCanvas extends Component<SpacesCanvasProps, SpacesCanvasState
 	private hoverColor: Color | undefined
 
 	public render() {
-		const { colorSpace, onHoverChange, what, colorHighlight, rotation, ...htmlAttributes } = this.props
+		const {
+			colorSpace,
+			onHoverChange,
+			what,
+			colorHighlight,
+			rotation,
+			pointerColorMaxDistance,
+			...htmlAttributes
+		} = this.props
 		return <canvas {...htmlAttributes} ref={r => (this.canvas = r!)} onMouseMove={this.onMouseMove} />
 	}
 
 	public windowOnResize = () => {
-		this.gl.fixCanvasRes()
+		this.gl.fixCanvasRes(2)
 		this.forceUpdate()
 	}
 
@@ -84,7 +93,7 @@ export class SpacesCanvas extends Component<SpacesCanvasProps, SpacesCanvasState
 		const { anchor, dir } = this.gl.getMouseLine(e.nativeEvent)
 		const t = this.colorPoss
 			.map((p, i) => [p, i] as [V3, int])
-			.filter(([p, _i]) => distanceLinePoint(anchor, dir, p) < 0.01)
+			.filter(([p, _i]) => distanceLinePoint(anchor, dir, p) < (this.props.pointerColorMaxDistance || 0.01))
 			.withMax(([p, _i]) => -p.minus(anchor).dot(dir.unit()))
 		const newHoverIndex = t ? t[1] : -1
 		const newHoverColor = this.getColorsForWhat(this.props.what)[newHoverIndex]
@@ -100,7 +109,7 @@ export class SpacesCanvas extends Component<SpacesCanvasProps, SpacesCanvasState
 
 	public async componentDidMount() {
 		const gl = (this.gl = TSGLContext.create({ canvas: this.canvas }))
-		gl.fixCanvasRes()
+		gl.fixCanvasRes(2)
 		gl.meshes = {
 			cube: Mesh.cube().compile(),
 		}
@@ -247,7 +256,7 @@ export const whats = {
 		return rgbCube(16)
 	},
 	w3cx11() {
-		return Object.keys(chroma.w3cx11).map(x => chroma(x))
+		return Object.keys(chroma.w3cx11).map(x => chroma.color(x))
 	},
 	_50shadesOfGrey() {
 		return Array.from({ length: 52 }, (_, i) => chroma.hsl(0, 0, i / 51))
@@ -283,7 +292,7 @@ export const whats = {
 	},
 	colors2() {
 		return extendedColors.map(([hex, _name, _shade]) => {
-			const c: X = chroma(hex) as X
+			const c: X = chroma.color(hex) as X
 			// c.displayColor = chroma(shade.toLowerCase())
 			// c.displayColor = chroma(c.shade())
 			return c

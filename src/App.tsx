@@ -6,6 +6,7 @@ import { Picker, PickerItem } from "./Picker"
 import chroma from "chroma.ts"
 import { DrawableColorSpaces, colorSpaces } from "./colorSpaces"
 import { extendedColors } from "./extendedColors"
+import { PickerMobile } from "./PickerMobile"
 type Color = chroma.Color
 const whats: (PickerItem<What> & { detail: (color: Color) => ReactNode })[] = [
 	{
@@ -109,13 +110,16 @@ export class App extends PureComponent<{}, AppState> {
 
 	/** Use when dragging. */
 	protected cancelNextClick = false
+	protected spacesCanvas: SpacesCanvas
 
 	public render() {
 		const { highlightedColor, selectedColor, colorSpace, what, rotation, camera } = this.state
 		const displayColor = highlightedColor || selectedColor
+		const P = window.innerWidth < 600 ? PickerMobile : Picker
+		console.log("window.innerWidth ", window.innerWidth)
 		return (
 			<>
-				<Picker
+				<P
 					id="colorSpace"
 					title="Choose a color space..."
 					items={colorSpaceItems}
@@ -123,7 +127,7 @@ export class App extends PureComponent<{}, AppState> {
 					onchange={colorSpace => this.setState({ colorSpace })}
 					value={this.state.colorSpace}
 				/>
-				<Picker
+				<P
 					id="what"
 					title="...and what to draw:"
 					items={whats}
@@ -144,6 +148,9 @@ export class App extends PureComponent<{}, AppState> {
 						camera={camera}
 						onMouseMove={this.canvasMove}
 						onTouchMove={this.canvasMove}
+						onTouchStart={this.canvasTouchStart}
+						ref={r => (this.spacesCanvas = r)}
+						pointerColorMaxDistance={window.innerWidth < 600 ? 0.05 : 0.01}
 					/>
 					<div id="info">
 						<div
@@ -160,7 +167,8 @@ export class App extends PureComponent<{}, AppState> {
 								{displayColor && whats.find(cs => cs.value == what)!.detail(displayColor)}
 							</div>
 						</div>
-						{/* <label>
+						<div id="buttons">
+							{/* <label>
 							<input
 								type="checkbox"
 								checked={rotation}
@@ -168,12 +176,21 @@ export class App extends PureComponent<{}, AppState> {
 							/>
 							Rotation
 						</label> */}
-						<button onClick={() => this.setCamera(V(5, 0, 0.5), V(0, 0, 0.5), V3.Z)}>X</button>
-						<button onClick={() => this.setCamera(V(0, 5, 0.5), V(0, 0, 0.5), V3.Z)}>Y</button>
-						<button onClick={() => this.setCamera(V(0, 0, 5.5), V(0, 0, 0.5), V3.Y)}>Z</button>
-						<button onClick={() => this.setState({ camera: new Camera() })}>Default</button>
-						<div style={{ textAlign: "right" }}>
-							<a href="https://github.com/NaridaL/visualize-color-spaces">view source on github</a>
+							<button onClick={() => this.setCamera(V(5, 0, 0.5), V(0, 0, 0.5), V3.Z)}>X</button>
+							<button onClick={() => this.setCamera(V(0, 5, 0.5), V(0, 0, 0.5), V3.Z)}>Y</button>
+							<button onClick={() => this.setCamera(V(0, 0, 5.5), V(0, 0, 0.5), V3.Y)}>Z</button>
+							<button onClick={() => this.setState({ camera: new Camera() })}>Default</button>
+							<a
+								href="https://github.com/NaridaL/visualize-color-spaces"
+								style={{ display: "inline-block", padding: "4px" }}
+							>
+								<img
+									src="./Octicons-mark-github.svg"
+									width="32px"
+									height="32px"
+									style={{ display: "inline-block" }}
+								/>
+							</a>
 						</div>
 					</div>
 				</div>
@@ -185,6 +202,11 @@ export class App extends PureComponent<{}, AppState> {
 		this.setState({ camera: { eye, center, up } })
 	}
 
+	protected canvasTouchStart = (e: TouchEvent<HTMLCanvasElement>) => {
+		if (e.targetTouches.length === 1) {
+			this.canvasMousePos = V(e.targetTouches[0].clientX, e.targetTouches[0].clientY)
+		}
+	}
 	protected canvasMove = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
 		let eventOffset
 		if (e.type == "mousemove") {
@@ -199,10 +221,12 @@ export class App extends PureComponent<{}, AppState> {
 		}
 		if (e.type !== "mousemove" || (e as MouseEvent).buttons & 1) {
 			const delta = this.canvasMousePos.to(eventOffset)
+			console.log(delta)
 			const { eye, center, up } = this.state.camera
+			const factor = 3 / Math.min(this.spacesCanvas.canvas.width, this.spacesCanvas.canvas.height)
 			const transformation = M4.multiply(
-				M4.rotateZ((-delta.x * DEG) / 10),
-				M4.rotate((-delta.y * DEG) / 10, eye.to(center).cross(up)),
+				M4.rotateZ(-delta.x * factor),
+				M4.rotate(-delta.y * factor, eye.to(center).cross(up)),
 			)
 
 			this.setState({
